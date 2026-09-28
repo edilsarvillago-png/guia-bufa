@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizarra Digital: Colisiones - Colegio Montano</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- KaTeX for LaTeX Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --montano-blue: #1269A8;
+      --montano-yellow: #F7D615;
+      --montano-green: #54887D;
+      --montano-lightblue: #88B5C7;
+      --montano-olive: #A6B046;
+      --montano-bg: #F2F5E9;
+      --montano-white: #FFFFFF;
+      --montano-dark: #1E293B;
+      --montano-lightblue-bg: #EBF4F8;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0F172A;
+      color: var(--montano-dark);
+      margin: 0;
+      padding: 15px;
+    }
+
+    /* Contenedor Marco de Pizarra Digital */
+    .pizarra-frame {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: var(--montano-bg);
+      border: 4px solid var(--montano-yellow);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Encabezado Institucional */
+    .pizarra-header {
+      background-color: var(--montano-blue);
+      color: var(--montano-white);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid var(--montano-yellow);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-logo {
+      height: 52px;
+      width: auto;
+      background-color: white;
+      padding: 4px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .header-title h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+    }
+
+    .header-title p {
+      font-size: 0.85rem;
+      margin: 0;
+      color: var(--montano-yellow);
+      font-weight: 600;
+    }
+
+    .btn-fullscreen {
+      background-color: var(--montano-yellow);
+      color: var(--montano-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .btn-fullscreen:hover {
+      background-color: #e0c210;
+      transform: scale(1.03);
+    }
+
+    /* Menú de Navegación por Pestañas */
+    .pizarra-nav {
+      background-color: #0E4E7D;
+      display: flex;
+      overflow-x: auto;
+      border-bottom: 3px solid var(--montano-green);
+      scrollbar-width: thin;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: #D1E5F0;
+      border: none;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      border-bottom: 4px solid transparent;
+    }
+
+    .tab-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--montano-white);
+    }
+
+    .tab-btn.active {
+      background-color: var(--montano-bg);
+      color: var(--montano-blue);
+      border-bottom: 4px solid var(--montano-yellow);
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      font-weight: 700;
+    }
+
+    .pizarra-content {
+      padding: 25px;
+      min-height: 550px;
+      max-height: 78vh;
+      overflow-y: auto;
+      background-color: var(--montano-bg);
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      color: var(--montano-blue);
+      border-bottom: 3px solid var(--montano-green);
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card {
+      background-color: var(--montano-white);
+      border-left: 5px solid var(--montano-blue);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border-top: 1px solid #E2E8F0;
+      border-right: 1px solid #E2E8F0;
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    .card-theory {
+      border-left-color: var(--montano-green);
+    }
+
+    .card-theory h3 {
+      color: var(--montano-green);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+
+    .badge-level {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--montano-white);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .badge-basico { background-color: var(--montano-olive); }
+    .badge-intermedio { background-color: var(--montano-blue); }
+    .badge-avanzado { background-color: #C0392B; }
+
+    .filter-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-filter {
+      background-color: #E2E8F0;
+      color: var(--montano-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-filter.active, .btn-filter:hover {
+      background-color: var(--montano-blue);
+      color: var(--montano-white);
+    }
+
+    .solution-box {
+      margin-top: 15px;
+      background-color: var(--montano-lightblue-bg);
+      border: 1px solid var(--montano-lightblue);
+      border-radius: 8px;
+      padding: 15px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .solution-box.show {
+      display: block;
+    }
+
+    .btn-solution {
+      background-color: var(--montano-green);
+      color: var(--montano-white);
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-solution:hover {
+      background-color: #3f685f;
+    }
+
+    .formula-box {
+      background-color: #F8FAFC;
+      border: 2px dashed var(--montano-lightblue);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .sim-container {
+      background-color: var(--montano-white);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #CBD5E1;
+    }
+
+    .sim-canvas-wrap {
+      width: 100%;
+      background-color: #1E293B;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    #simCanvas {
+      display: block;
+      width: 100%;
+      height: 280px;
+    }
+
+    .sim-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .sim-card {
+      background-color: var(--montano-lightblue-bg);
+      border: 1px solid var(--montano-lightblue);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .sim-card h4 {
+      color: var(--montano-blue);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-group {
+      margin-bottom: 10px;
+    }
+
+    .control-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--montano-dark);
+      margin-bottom: 4px;
+    }
+
+    .control-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--montano-blue);
+      cursor: pointer;
+    }
+
+    .sim-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-sim {
+      background-color: var(--montano-blue);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-sim:hover {
+      background-color: #0E4E7D;
+      transform: translateY(-1px);
+    }
+
+    .btn-sim-reset {
+      background-color: #C0392B;
+    }
+
+    .btn-sim-reset:hover {
+      background-color: #962D22;
+    }
+
+    .sim-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+      background-color: #F8FAFC;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #E2E8F0;
+    }
+
+    .stat-box {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #64748B;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--montano-blue);
+    }
+
+    .pizarra-footer {
+      background-color: #0E4E7D;
+      color: var(--montano-white);
+      text-align: center;
+      padding: 10px;
+      font-size: 0.8rem;
+      border-top: 2px solid var(--montano-yellow);
+    }
+
+    @media (max-width: 768px) {
+      .header-title h1 { font-size: 1.1rem; }
+      .pizarra-content { padding: 15px; }
+      .tab-btn { padding: 10px 14px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pizarra-frame" id="pizarra">
+    <header class="pizarra-header">
+      <div class="header-brand">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyEop0yf6lZ7Jk9MILZxF1rBj4Oqs5esyhIQ&s" alt="Logo Colegio Montano" class="header-logo">
+        <div class="header-title">
+          <h1>COLEGIO MONTANO</h1>
+          <p>PIZARRA DIGITAL INTERACTIVA | FÍSICA APLICADA: COLISIONES (4º BACHILLERATO)</p>
+        </div>
+      </div>
+      <button class="btn-fullscreen" onclick="toggleFullscreen()">
+        <span>⛶</span> Pantalla Completa
+      </button>
+    </header>
+
+    <nav class="pizarra-nav">
+      <button class="tab-btn active" onclick="switchTab('teoria')">📖 1. Explicación Teórica</button>
+      <button class="tab-btn" onclick="switchTab('ejemplos')">💡 2. Ejemplos Resueltos (15)</button>
+      <button class="tab-btn" onclick="switchTab('ejercicios')">✍️ 3. Ejercicios Prácticos (15)</button>
+      <button class="tab-btn" onclick="switchTab('reflexion')">🧠 4. Reflexión Crítica</button>
+      <button class="tab-btn" onclick="switchTab('evaluacion')">📝 5. Evaluación Formativa</button>
+      <button class="tab-btn" onclick="switchTab('simulador')">🧪 6. Simulador Interactivo</button>
+    </nav>
+
+    <!-- Área de Contenido Principal -->
+    <main class="pizarra-content">
+
+      <div id="pane-teoria" class="tab-pane active">
+        <h2 class="section-title">Fundamentos Teóricos: Cantidad de Movimiento y Colisiones</h2>
+        
+        <div class="card card-theory">
+          <h3>1. Cantidad de Movimiento Lineal ($\vec{p}$) e Impulso ($\vec{I}$)</h3>
+          <p>La cantidad de movimiento lineal es un vector que mide la inercia de un objeto en movimiento. Se define como el producto de la masa por la velocidad:</p>
+          <div class="formula-box">
+            $$\vec{p} = m\vec{v} \quad \left[\text{Unidad SI: } \text{kg}\cdot\text{m/s}\right]$$
+          </div>
+          <p>El <strong>Teorema del Impulso y la Cantidad de Movimiento</strong> establece que la fuerza neta promedio ejercida sobre un objeto durante un intervalo de tiempo $\Delta t$ produce un cambio en su cantidad de movimiento:</p>
+          <div class="formula-box">
+            $$\vec{I} = \vec{F}_{\text{prom}} \Delta t = \Delta \vec{p} = m\vec{v}_f - m\vec{v}_i \quad \left[\text{Unidad SI: } \text{N}\cdot\text{s} \equiv \text{kg}\cdot\text{m/s}\right]$$
+          </div>
+        </div>
+
+        <div class="card card-theory">
+          <h3>2. Ley de Conservación de la Cantidad de Movimiento Lineal</h3>
+          <p>En un <em>sistema aislado</em> (donde la fuerza externa neta es cero, $\sum \vec{F}_{\text{ext}} = 0$), la cantidad de movimiento lineal total del sistema se mantiene constante en todo momento:</p>
+          <div class="formula-box">
+            $$\vec{P}_i = \vec{P}_f \implies m_1\vec{v}_{1i} + m_2\vec{v}_{2i} = m_1\vec{v}_{1f} + m_2\vec{v}_{2f}$$
+          </div>
+        </div>
+
+        <div class="card card-theory">
+          <h3>3. Clasificación de Choques / Colisiones</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+            <div style="background-color: var(--montano-lightblue-bg); padding: 14px; border-radius: 8px; border: 1px solid var(--montano-lightblue);">
+              <h4 style="color: var(--montano-blue); font-weight:700;">A. Choque Totalmente Inelástico</h4>
+              <p class="text-sm mt-1">Los cuerpos se adhieren y se mueven juntos tras el impacto con velocidad común $v_f$. Se conserva la cantidad de movimiento, pero <strong>se pierde el máximo de energía cinética ($K$)</strong>:</p>
+              $$\vec{v}_f = \frac{m_1\vec{v}_{1i} + m_2\vec{v}_{2i}}{m_1 + m_2}$$
+              $$\frac{K_f}{K_i} = \frac{m_1}{m_1 + m_2} \quad (\text{si } v_{2i} = 0)$$
+            </div>
+            <div style="background-color: var(--montano-lightblue-bg); padding: 14px; border-radius: 8px; border: 1px solid var(--montano-lightblue);">
+              <h4 style="color: var(--montano-blue); font-weight:700;">B. Choque Elástico (1D)</h4>
+              <p class="text-sm mt-1"><strong>Se conserva tanto la cantidad de movimiento como la energía cinética total ($K_i = K_f$)</strong>. La rapidez relativa de alejamiento es igual a la de acercamiento:</p>
+              $$v_{1i} - v_{2i} = -(v_{1f} - v_{2f})$$
+              $$v_{1f} = \left(\frac{m_1 - m_2}{m_1 + m_2}\right)v_{1i} + \left(\frac{2m_2}{m_1 + m_2}\right)v_{2i}$$
+              $$v_{2f} = \left(\frac{2m_1}{m_1 + m_2}\right)v_{1i} - \left(\frac{m_1 - m_2}{m_1 + m_2}\right)v_{2i}$$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-ejemplos" class="tab-pane">
+        <h2 class="section-title">Ejemplos Resueltos con Referencia al Texto (15 Problemas Clasificados)</h2>
+        
+        <div class="filter-container">
+          <button class="btn-filter active" onclick="filterLevel('ejem', 'todos')">Todos (15)</button>
+          <button class="btn-filter" onclick="filterLevel('ejem', 'basico')">Nivel Básico (5)</button>
+          <button class="btn-filter" onclick="filterLevel('ejem', 'intermedio')">Nivel Intermedio (5)</button>
+          <button class="btn-filter" onclick="filterLevel('ejem', 'avanzado')">Nivel Avanzado (5)</button>
+        </div>
+
+        <!-- BÁSICO -->
+        <div class="card ejem-item basico">
+          <span class="badge-level badge-basico">Ejemplo 1 | Básico — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 56]</strong></span>
+          <h4>Empuje entre patinadores en reposo (Retroceso 1D)</h4>
+          <p>Un hombre de $65.0\text{ kg}$ y su compañera de $45.0\text{ kg}$ están parados frente a frente sobre patines en reposo. Se empujan para separarse y la mujer sale con $1.50\text{ m/s}$ hacia el este. ¿Qué velocidad adquiere el compañero?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e1')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e1" class="solution-box">
+            <p><strong>Paso 1: Conservación de cantidad de movimiento.</strong> Inicialmente ambos están en reposo ($P_i = 0$).</p>
+            $$P_i = P_f \implies 0 = m_m v_{mf} + m_h v_{hf}$$
+            <p><strong>Paso 2: Despejar la velocidad del hombre ($v_{hf}$).</strong></p>
+            $$v_{hf} = -\frac{m_m}{m_h} v_{mf} = -\left(\frac{45.0\text{ kg}}{65.0\text{ kg}}\right)(+1.50\text{ m/s}) = -1.04\text{ m/s}$$
+            <p><strong>Respuesta:</strong> El hombre se mueve hacia el oeste a $1.04\text{ m/s}$.</p>
+          </div>
+        </div>
+
+        <div class="card ejem-item basico">
+          <span class="badge-level badge-basico">Ejemplo 2 | Básico — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 61a]</strong></span>
+          <h4>Acoplamiento de Vagones de Tren (Totalmente Inelástico)</h4>
+          <p>Un vagón de carga de $25,000\text{ kg}$ rueda a $2.50\text{ m/s}$ y choca contra otro vagón idéntico en reposo, quedando enganchados. ¿Cuál es la velocidad final de la combinación?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e2')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e2" class="solution-box">
+            <p><strong>Aplicación de la fórmula de choque totalmente inelástico ($v_{2i} = 0$):</strong></p>
+            $$v_f = \left(\frac{m_1}{m_1 + m_2}\right) v_{1i} = \left(\frac{25000}{25000 + 25000}\right) (2.50\text{ m/s}) = \frac{1}{2}(2.50) = 1.25\text{ m/s}$$
+            <p><strong>Respuesta:</strong> La velocidad combinada es de $1.25\text{ m/s}$.</p>
+          </div>
+        </div>
+
+        <div class="card ejem-item basico">
+          <span class="badge-level badge-basico">Ejemplo 3 | Básico — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 57]</strong></span>
+          <h4>Escape de Lago Congelado (Impulso por Proyección)</h4>
+          <p>Una persona de $65.0\text{ kg}$ parada sobre hielo sin fricción lanza horizontalmente un zapato de $0.150\text{ kg}$ a $2.00\text{ m/s}$ para moverse. ¿Qué velocidad de retroceso adquiere?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e3')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e3" class="solution-box">
+            $$0 = m_p v_p + m_z v_z \implies v_p = -\frac{m_z}{m_p} v_z = -\left(\frac{0.150\text{ kg}}{65.0\text{ kg}}\right)(2.00\text{ m/s}) = -0.00462\text{ m/s}$$
+            <p><strong>Respuesta:</strong> Se retrocede a $4.62\times 10^{-3}\text{ m/s}$ en sentido opuesto al lanzamiento.</p>
+          </div>
+        </div>
+
+        <div class="card ejem-item basico">
+          <span class="badge-level badge-basico">Ejemplo 4 | Básico — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 65]</strong></span>
+          <h4>Carga sobre Camioneta en Movimiento</h4>
+          <p>Una camioneta vacía de $1600\text{ kg}$ rueda a $2.50\text{ m/s}$ por una tolva que deja caer en ella $3500\text{ kg}$ de grava. Calcule la rapidez final.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e4')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e4" class="solution-box">
+            <p>Como la grava cae verticalmente, su cantidad de movimiento horizontal inicial es cero ($p_x = 0$).</p>
+            $$m_c v_{ci} = (m_c + m_g) v_f \implies v_f = \frac{1600\text{ kg} \times 2.50\text{ m/s}}{1600\text{ kg} + 3500\text{ kg}} = \frac{4000}{5100} = 0.784\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item basico">
+          <span class="badge-level badge-basico">Ejemplo 5 | Básico — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 75]</strong></span>
+          <h4>Choque Elástico Directo de Masas Iguales</h4>
+          <p>Una bola de billar de $0.30\text{ kg}$ con velocidad $+2.0\text{ m/s}$ choca elásticamente contra otra bola en reposo de igual masa. Muestre el resultado de las velocidades finales.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e5')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e5" class="solution-box">
+            <p>Para $m_1 = m_2$ y $v_{2i} = 0$ en la fórmula elástica:</p>
+            $$v_{1f} = \left(\frac{m-m}{2m}\right)v_{1i} = 0 \quad \text{y} \quad v_{2f} = \left(\frac{2m}{2m}\right)v_{1i} = v_{1i} = +2.0\text{ m/s}$$
+            <p><strong>Conclusión:</strong> Hay un intercambio completo de velocidad. La primera bola se detiene y la segunda adquiere toda su velocidad.</p>
+          </div>
+        </div>
+
+        <!-- INTERMEDIO -->
+        <div class="card ejem-item intermedio">
+          <span class="badge-level badge-intermedio">Ejemplo 6 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 58]</strong></span>
+          <h4>Explosión en Tres Fragmentos (Conservación 2D)</h4>
+          <p>Un objeto de $3.00\text{ kg}$ en reposo explota en 3 trozos: $0.50\text{ kg}$ a $2.80\text{ m/s}$ (Oeste) y $1.30\text{ kg}$ a $1.50\text{ m/s}$ (Sur). Calcule el vector velocidad del tercer fragmento.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e6')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e6" class="solution-box">
+            <p><strong>Masa del 3er trozo:</strong> $m_3 = 3.00 - 0.50 - 1.30 = 1.20\text{ kg}$.</p>
+            <p><strong>Componentes de la cantidad de movimiento:</strong></p>
+            $$p_{1x} = (0.50)(-2.80) = -1.40\text{ kg}\cdot\text{m/s}, \quad p_{2y} = (1.30)(-1.50) = -1.95\text{ kg}\cdot\text{m/s}$$
+            <p>Como $\vec{P}_i = 0$, para el fragmento 3:</p>
+            $$p_{3x} = +1.40\text{ kg}\cdot\text{m/s}, \quad p_{3y} = +1.95\text{ kg}\cdot\text{m/s}$$
+            $$v_{3x} = \frac{1.40}{1.20} = 1.17\text{ m/s}, \quad v_{3y} = \frac{1.95}{1.20} = 1.63\text{ m/s}$$
+            $$v_3 = \sqrt{1.17^2 + 1.63^2} = 2.01\text{ m/s}, \quad \theta = \tan^{-1}\left(\frac{1.63}{1.17}\right) = 54.3^\circ \text{ Norte del Este}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item intermedio">
+          <span class="badge-level badge-intermedio">Ejemplo 7 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 62c]</strong></span>
+          <h4>Pérdida de Energía Cinética en Choque Frontal Inelástico</h4>
+          <p>Un auto de $1200\text{ kg}$ a $+25.0\text{ m/s}$ choca contra una camioneta de $1500\text{ kg}$ a $-20.0\text{ m/s}$, quedando enganchados. Determine la rapidez final y la pérdida de energía cinética.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e7')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e7" class="solution-box">
+            <p><strong>1. Conservación de $\vec{p}$:</strong></p>
+            $$v_f = \frac{(1200)(25) + (1500)(-20)}{1200 + 1500} = \frac{30000 - 30000}{2700} = 0\text{ m/s}$$
+            <p><strong>2. Energía Cinética Inicial ($K_i$):</strong></p>
+            $$K_i = \frac{1}{2}(1200)(25)^2 + \frac{1}{2}(1500)(20)^2 = 375,000 + 300,000 = 675,000\text{ J} = 675\text{ kJ}$$
+            <p><strong>Respuesta:</strong> Ambos quedan en reposo ($v_f = 0$) y se pierde el 100% de la energía cinética ($675\text{ kJ}$).</p>
+          </div>
+        </div>
+
+        <div class="card ejem-item intermedio">
+          <span class="badge-level badge-intermedio">Ejemplo 8 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 82]</strong></span>
+          <h4>Choque Elástico en 1D entre Masas Distintas</h4>
+          <p>Una esfera de $4.0\text{ kg}$ con velocidad $+4.0\text{ m/s}$ choca elásticamente contra una esfera de $2.0\text{ kg}$ en reposo. Calcule ambas velocidades finales.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e8')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e8" class="solution-box">
+            $$v_{1f} = \left(\frac{4.0 - 2.0}{4.0 + 2.0}\right)(4.0) = \frac{2}{6}(4.0) = +1.33\text{ m/s}$$
+            $$v_{2f} = \left(\frac{2(4.0)}{4.0 + 2.0}\right)(4.0) = \frac{8}{6}(4.0) = +5.33\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item intermedio">
+          <span class="badge-level badge-intermedio">Ejemplo 9 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 63]</strong></span>
+          <h4>Bala Atravesando un Bloque de Madera</h4>
+          <p>Una bala de $10.0\text{ g}$ a $400\text{ m/s}$ atraviesa un bloque de $3.00\text{ kg}$ inicialmente en reposo y sale a $300\text{ m/s}$. ¿Qué rapidez adquiere el bloque?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e9')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e9" class="solution-box">
+            <p>Masa bala $m = 0.010\text{ kg}$. Conservación de cantidad de movimiento:</p>
+            $$m v_{bi} + 0 = m v_{bf} + M v_B \implies (0.010)(400) = (0.010)(300) + (3.00) v_B$$
+            $$4.0 = 3.0 + 3.00 v_B \implies 3.00 v_B = 1.0 \implies v_B = 0.333\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item intermedio">
+          <span class="badge-level badge-intermedio">Ejemplo 10 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 91]</strong></span>
+          <h4>Colisión Perpendicular Inelástica de Automóviles</h4>
+          <p>Un auto de $1500\text{ kg}$ hacia el Este a $90.0\text{ km/h}$ ($25.0\text{ m/s}$) choca en un cruce con una camioneta de $3000\text{ kg}$ hacia el Sur a $60.0\text{ km/h}$ ($16.67\text{ m/s}$). Quedan enganchados. Determine la velocidad vectorial inmediatamente posterior.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e10')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e10" class="solution-box">
+            $$P_x = (1500)(25.0) = 37,500\text{ kg}\cdot\text{m/s}, \quad P_y = (3000)(-16.67) = -50,000\text{ kg}\cdot\text{m/s}$$
+            $$M_{\text{total}} = 4500\text{ kg}$$
+            $$v_x = \frac{37500}{4500} = 8.33\text{ m/s}, \quad v_y = \frac{-50000}{4500} = -11.11\text{ m/s}$$
+            $$v_f = \sqrt{8.33^2 + (-11.11)^2} = 13.89\text{ m/s} \quad (50.0\text{ km/h})$$
+            $$\theta = \tan^{-1}\left(\frac{-11.11}{8.33}\right) = -53.1^\circ \text{ (Sur del Este)}$$
+          </div>
+        </div>
+
+        <!-- AVANZADO -->
+        <div class="card ejem-item avanzado">
+          <span class="badge-level badge-avanzado">Ejemplo 11 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 72]</strong></span>
+          <h4>Péndulo Balístico</h4>
+          <p>Una bala de $m = 10\text{ g}$ ($0.010\text{ kg}$) se incrusta en un bloque suspendido de $M = 2.00\text{ kg}$. El sistema oscila alcanzando una altura vertical de $h = 0.120\text{ m}$. Calcule la rapidez inicial de la bala $v_0$.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e11')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e11" class="solution-box">
+            <p><strong>1. Conservación de Energía tras el choque para el sistema bloque+bala:</strong></p>
+            $$\frac{1}{2}(m+M)V^2 = (m+M)gh \implies V = \sqrt{2gh} = \sqrt{2(9.80)(0.120)} = 1.534\text{ m/s}$$
+            <p><strong>2. Conservación de $\vec{p}$ en el choque:</strong></p>
+            $$m v_0 = (m+M) V \implies v_0 = \left(\frac{m+M}{m}\right)\sqrt{2gh} = \left(\frac{2.010}{0.010}\right)(1.534) = 308\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item avanzado">
+          <span class="badge-level badge-avanzado">Ejemplo 12 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 87]</strong></span>
+          <h4>Choque Inelástico y Subida por Plano Inclinado</h4>
+          <p>Un objeto de $1.0\text{ kg}$ a $10.0\text{ m/s}$ choca inelásticamente contra otro de $2.0\text{ kg}$ en reposo. El conjunto se desliza sin fricción subiendo un plano inclinado a $37^\circ$. ¿Qué distancia $d$ sobre la rampa recorre?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e12')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e12" class="solution-box">
+            <p><strong>1. Velocidad post-colisión:</strong> $v_f = \frac{(1.0)(10.0)}{1.0 + 2.0} = 3.333\text{ m/s}$.</p>
+            <p><strong>2. Conservación de energía mecánica en el plano:</strong> $\frac{1}{2} M_t v_f^2 = M_t g h \implies h = \frac{v_f^2}{2g} = \frac{(3.333)^2}{2(9.80)} = 0.567\text{ m}$.</p>
+            <p><strong>3. Distancia sobre la rampa ($d$):</strong> $d = \frac{h}{\sin 37^\circ} = \frac{0.567}{0.6018} = 0.942\text{ m}$.</p>
+          </div>
+        </div>
+
+        <div class="card ejem-item avanzado">
+          <span class="badge-level badge-avanzado">Ejemplo 13 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 71]</strong></span>
+          <h4>Choque de Refilón en 2D (Satelite y Asteroide)</h4>
+          <p>Un asteroide de $10\text{ g}$ a $2000\text{ m/s}$ choca contra un satélite de $100\text{ kg}$ en reposo. El asteroide se desvía $10^\circ$ reduciendo su rapidez a $1000\text{ m/s}$. Calcule el ángulo de desvío del satélite.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e13')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e13" class="solution-box">
+            <p>Descomponiendo las componentes $x$ e $y$ para la masa del asteroide $m = 0.010\text{ kg}$ y satélite $M = 100\text{ kg}$:</p>
+            $$p_{y,f} = 0 \implies m v_{af} \sin(10^\circ) + M v_{sf} \sin(\theta_s) = 0$$
+            $$(0.010)(1000)(0.1736) + 100 v_{sf} \sin(\theta_s) = 0 \implies 100 v_{sf} \sin(\theta_s) = -1.736$$
+            $$p_{x,f} = m v_{ai} = 20 \implies (0.010)(1000)\cos(10^\circ) + 100 v_{sf}\cos(\theta_s) = 20 \implies 100 v_{sf}\cos(\theta_s) = 20 - 9.848 = 10.152$$
+            $$\tan(\theta_s) = \frac{-1.736}{10.152} = -0.171 \implies \theta_s = -9.7^\circ \text{ y } v_{sf} = 0.103\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item avanzado">
+          <span class="badge-level badge-avanzado">Ejemplo 14 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 96]</strong></span>
+          <h4>Secuencia Múltiple: Choque Elástico e Inelástico Consecutivos</h4>
+          <p>Auto 1 ($2000\text{ kg}$) a $15\text{ m/s}$ choca elásticamente contra Auto 2 ($1500\text{ kg}$) en reposo. Inmediatamente Auto 2 choca e impacta inelásticamente enganchándose con Auto 3 ($2500\text{ kg}$) en reposo. Encuentre las velocidades finales.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e14')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e14" class="solution-box">
+            <p><strong>Fase 1 (Choque Elástico 1-2):</strong></p>
+            $$v_{2f} = \frac{2(2000)}{2000 + 1500}(15) = \frac{4000}{3500}(15) = 17.14\text{ m/s}$$
+            $$v_{1f} = \frac{2000 - 1500}{3500}(15) = 2.14\text{ m/s}$$
+            <p><strong>Fase 2 (Choque Totalmente Inelástico 2-3):</strong></p>
+            $$v_{23f} = \frac{m_2 v_{2f}}{m_2 + m_3} = \frac{1500 \times 17.14}{1500 + 2500} = \frac{25710}{4000} = 6.43\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejem-item avanzado">
+          <span class="badge-level badge-avanzado">Ejemplo 15 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref. Texto: Ejercicio 97]</strong></span>
+          <h4>Colisión de Péndulos Dobles</h4>
+          <p>Una masa de $m = 1.0\text{ kg}$ se libera desde un ángulo de $30^\circ$ con una cuerda de $L = 1.50\text{ m}$. En la parte inferior choca elásticamente con una masa de $M = 2.0\text{ kg}$. Calcule la altura máxima alcanzada por cada masa tras el rebote.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-e15')">👁️ Mostrar Solución Paso a Paso</button>
+          <div id="sol-e15" class="solution-box">
+            <p><strong>1. Altura inicial de la masa 1:</strong> $h_0 = L(1 - \cos 30^\circ) = 1.50(1 - 0.866) = 0.201\text{ m}$.</p>
+            <p><strong>2. Velocidad de impacto:</strong> $v_{1i} = \sqrt{2g h_0} = \sqrt{2(9.8)(0.201)} = 1.985\text{ m/s}$.</p>
+            <p><strong>3. Velocidades elásticas tras impacto:</strong></p>
+            $$v_{1f} = \left(\frac{1 - 2}{1 + 2}\right)(1.985) = -0.662\text{ m/s}, \quad v_{2f} = \left(\frac{2(1)}{1 + 2}\right)(1.985) = +1.323\text{ m/s}$$
+            <p><strong>4. Alturas de rebote:</strong></p>
+            $$h_1 = \frac{v_{1f}^2}{2g} = 0.0224\text{ m} \quad (\theta_1 = 9.9^\circ), \quad h_2 = \frac{v_{2f}^2}{2g} = 0.0893\text{ m} \quad (\theta_2 = 19.8^\circ)$$
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-ejercicios" class="tab-pane">
+        <h2 class="section-title">Ejercicios de Práctica Autónoma (15 Problemas)</h2>
+
+        <div class="filter-container">
+          <button class="btn-filter active" onclick="filterLevel('ejer', 'todos')">Todos (15)</button>
+          <button class="btn-filter" onclick="filterLevel('ejer', 'basico')">Nivel Básico (5)</button>
+          <button class="btn-filter" onclick="filterLevel('ejer', 'intermedio')">Nivel Intermedio (5)</button>
+          <button class="btn-filter" onclick="filterLevel('ejer', 'avanzado')">Nivel Avanzado (5)</button>
+        </div>
+
+        <!-- BÁSICOS -->
+        <div class="card ejer-item basico">
+          <span class="badge-level badge-basico">Ejercicio 1 | Básico — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 55]</strong></span>
+          <p>Un astronauta de $60.0\text{ kg}$ lanza un martillo de $0.500\text{ kg}$ a $10.0\text{ m/s}$ respecto a su nave. Calcule la rapidez con la que el astronauta se aleja en dirección opuesta.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr1')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr1" class="solution-box">
+            $$v_a = -\frac{(0.500)(10.0)}{60.0} = -0.0833\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item basico">
+          <span class="badge-level badge-basico">Ejercicio 2 | Básico — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 61b]</strong></span>
+          <p>Dos autos chocan a $90.0\text{ km/h}$ y $120\text{ km/h}$ de frente enganchándose. Si tienen masas idénticas, calcule la rapidez de la combinación justo después del impacto.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr2')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr2" class="solution-box">
+            $$v_f = \frac{90.0 - 120}{2} = -15.0\text{ km/h} \quad (4.17\text{ m/s en dirección del auto más veloz})$$
+          </div>
+        </div>
+
+        <div class="card ejer-item basico">
+          <span class="badge-level badge-basico">Ejercicio 3 | Básico — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 13]</strong></span>
+          <p>Una bala de caucho de $15.0\text{ g}$ choca contra una pared a $150\text{ m/s}$ y rebota a $120\text{ m/s}$. ¿Cuál fue el cambio en su cantidad de movimiento?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr3')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr3" class="solution-box">
+            $$\Delta p = m(v_f - v_i) = 0.0150 \times (-120 - 150) = -4.05\text{ kg}\cdot\text{m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item basico">
+          <span class="badge-level badge-basico">Ejercicio 4 | Básico — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 20]</strong></span>
+          <p>Un remolque de $5000\text{ kg}$ a $3.00\text{ km/h}$ choca contra una plataforma y se frena en $0.640\text{ s}$. Determine la fuerza promedio ejercida.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr4')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr4" class="solution-box">
+            $$v = 3.00/3.6 = 0.833\text{ m/s} \implies F = \frac{\Delta p}{\Delta t} = \frac{5000 \times (0 - 0.833)}{0.640} = -6510\text{ N}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item basico">
+          <span class="badge-level badge-basico">Ejercicio 5 | Básico — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 24]</strong></span>
+          <p>Una persona lanza una pelota de $0.200\text{ kg}$ verticalmente hacia arriba a $4.50\text{ m/s}$. ¿Cuál es el cambio total en la cantidad de movimiento al regresar a la misma altura?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr5')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr5" class="solution-box">
+            $$\Delta p = m(-v_i - v_i) = 0.200 \times (-4.50 - 4.50) = -1.80\text{ kg}\cdot\text{m/s}$$
+          </div>
+        </div>
+
+        <!-- INTERMEDIOS -->
+        <div class="card ejer-item intermedio">
+          <span class="badge-level badge-intermedio">Ejercicio 6 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 64]</strong></span>
+          <p>Una bomba en reposo de $10.0\text{ kg}$ explota en dos partes. Un trozo de $4.00\text{ kg}$ sale hacia el Oeste a $100\text{ m/s}$. Encuentre la velocidad del segundo trozo y la energía liberada.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr6')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr6" class="solution-box">
+            $$v_2 = +\frac{4.00 \times 100}{6.00} = +66.7\text{ m/s (Este)}$$
+            $$K_{\text{liberada}} = \frac{1}{2}(4.00)(100)^2 + \frac{1}{2}(6.00)(66.7)^2 = 20,000 + 13,333 = 33.3\text{ kJ}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item intermedio">
+          <span class="badge-level badge-intermedio">Ejercicio 7 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 66]</strong></span>
+          <p>Una "bala de goma" de $0.500\text{ kg}$ a $250\text{ m/s}$ rebota hacia atrás a $100\text{ m/s}$ tras chocar contra un blanco de $25.0\text{ kg}$ en reposo. Determine la velocidad final del blanco.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr7')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr7" class="solution-box">
+            $$(0.500)(250) = (0.500)(-100) + (25.0)v_B \implies 125 = -50 + 25.0 v_B \implies v_B = 7.00\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item intermedio">
+          <span class="badge-level badge-intermedio">Ejercicio 8 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 67]</strong></span>
+          <p>Un doble de cine de $75.0\text{ kg}$ cae verticalmente sobre un trineo de $50.0\text{ kg}$ que se mueve horizontalmente a $10.0\text{ m/s}$. ¿Qué rapidez tiene el trineo con el doble a bordo?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr8')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr8" class="solution-box">
+            $$v_f = \frac{50.0 \times 10.0}{50.0 + 75.0} = 4.00\text{ m/s}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item intermedio">
+          <span class="badge-level badge-intermedio">Ejercicio 9 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 84]</strong></span>
+          <p>Jill ($325\text{ kg}$ en su coche de feria) a $3.50\text{ m/s}$ hacia la izquierda choca elásticamente contra Jack ($290\text{ kg}$) a $2.00\text{ m/s}$ hacia la derecha. Calcule sus velocidades finales.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr9')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr9" class="solution-box">
+            $$v_{\text{Jill,f}} = -1.68\text{ m/s (Izquierda)}, \quad v_{\text{Jack,f}} = +3.81\text{ m/s (Derecha)}$$
+          </div>
+        </div>
+
+        <div class="card ejer-item intermedio">
+          <span class="badge-level badge-intermedio">Ejercicio 10 | Intermedio — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 85]</strong></span>
+          <p>Una patrulla de $1800\text{ kg}$ a $40.0\text{ m/s}$ choca por detrás elásticamente a un vehículo de $1500\text{ kg}$ a $38.0\text{ m/s}$. Determine ambas velocidades post-impacto.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr10')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr10" class="solution-box">
+            $$v_{\text{patrulla}} = +38.18\text{ m/s}, \quad v_{\text{auto}} = +40.18\text{ m/s}$$
+          </div>
+        </div>
+
+        <!-- AVANZADOS -->
+        <div class="card ejer-item avanzado">
+          <span class="badge-level badge-avanzado">Ejercicio 11 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref: Ejercicios 69 y 107]</strong></span>
+          <p>Un proyectil a $90.0\text{ km/h}$ y $60.0^\circ$ se divide en la cúspide en dos fragmentos iguales. Uno cae verticalmente desde el reposo. ¿A qué distancia del cañón cae el otro fragmento?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr11')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr11" class="solution-box">
+            <p>Por centro de masa, la posición del $CM$ debe ser el alcance original $R$. Como una masa cae a $R/2$, la otra cae a $3R/2 = 1.5 R$.</p>
+          </div>
+        </div>
+
+        <div class="card ejer-item avanzado">
+          <span class="badge-level badge-avanzado">Ejercicio 12 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 90]</strong></span>
+          <p>Dos partículas de masas $2.0\text{ kg}$ a $(0, 3.0\text{ m/s})$ y $4.0\text{ kg}$ a $(5.0\text{ m/s}, 0)$ chocan en el origen quedando adheridas. Encuentre el ángulo de movimiento del conjunto.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr12')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr12" class="solution-box">
+            $$P_x = 20, \quad P_y = 6 \implies \theta = \tan^{-1}(6/20) = 16.7^\circ \text{ sobre el eje } +x$$
+          </div>
+        </div>
+
+        <div class="card ejer-item avanzado">
+          <span class="badge-level badge-avanzado">Ejercicio 13 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 95]</strong></span>
+          <p>En un reactor nuclear, un neutrón sufre un choque elástico directo con un núcleo de Carbono-12 en reposo ($m_C = 12 m_n$). ¿Qué porcentaje de energía cinética pierde el neutrón?</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr13')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr13" class="solution-box">
+            $$\frac{v_f}{v_i} = \frac{1 - 12}{1 + 12} = -\frac{11}{13} \implies \frac{K_f}{K_i} = \left(-\frac{11}{13}\right)^2 = \frac{121}{169} = 0.716 \implies \text{Pierde el } 28.4\%$$
+          </div>
+        </div>
+
+        <div class="card ejer-item avanzado">
+          <span class="badge-level badge-avanzado">Ejercicio 14 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 119]</strong></span>
+          <p>Un disco de hockey de $0.50\text{ kg}$ a $35.0\text{ m/s}$ a $30^\circ$ es atrapado por una jugadora de $50.0\text{ kg}$ que se desplazaba a $5.00\text{ m/s}$ al Este. Encuentre la velocidad final conjunta.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr14')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr14" class="solution-box">
+            $$P_x = 50(5) + 0.5(35\cos 30^\circ) = 250 + 15.15 = 265.15$$
+            $$P_y = 0.5(35\sin 30^\circ) = 8.75 \implies v_f = \frac{\sqrt{265.15^2 + 8.75^2}}{50.5} = 5.25\text{ m/s a } 1.89^\circ$$
+          </div>
+        </div>
+
+        <div class="card ejer-item avanzado">
+          <span class="badge-level badge-avanzado">Ejercicio 15 | Avanzado — <strong class="text-yellow-300 ml-1">[Ref: Ejercicio 98]</strong></span>
+          <p>Demuestre que la fracción de energía cinética perdida en un péndulo balístico de masa $M$ impactado por una bala $m$ es exactamente $\frac{M}{m + M}$.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-pr15')">👁️ Ver Pista y Solución</button>
+          <div id="sol-pr15" class="solution-box">
+            $$\Delta K = K_i - K_f = \frac{1}{2}m v_0^2 - \frac{1}{2}(m+M)\left(\frac{m v_0}{m+M}\right)^2 = K_i \left(1 - \frac{m}{m+M}\right) = K_i \left(\frac{M}{m+M}\right)$$
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-reflexion" class="tab-pane">
+        <h2 class="section-title">Preguntas de Reflexión Crítica y Pensamiento Lógico</h2>
+
+        <div class="card card-theory">
+          <h3>1. La Paradoja de la Energía Cinética "Perdida"</h3>
+          <p><strong>Cuestionamiento:</strong> En una colisión totalmente inelástica, la cantidad de movimiento lineal total se conserva exactamente, pero la energía cinética disminuye drásticamente. ¿Viola esto el Principio Universal de Conservación de la Energía? Explica detalladamente en qué se transforma dicha energía.</p>
+        </div>
+
+        <div class="card card-theory">
+          <h3>2. Seguridad Automotriz y Teorema del Impulso</h3>
+          <p><strong>Cuestionamiento:</strong> Desde la perspectiva de las ecuaciones $\vec{I} = \vec{F}_{\text{prom}} \Delta t = \Delta \vec{p}$, justifica matemáticamente por qué las zonas de deformación programable y las bolsas de aire en los vehículos reducen las lesiones mortales durante un choque frontal.</p>
+        </div>
+
+        <div class="card card-theory">
+          <h3>3. Propulsión a Chorro en el Vacío Espacial</h3>
+          <p><strong>Cuestionamiento:</strong> Un error conceptual común es pensar que los cohetes espaciales se aceleran "empujando" contra el aire de la atmósfera. ¿Cómo logra acelerar un cohete en el vacío absoluto del espacio exterior? Utiliza la Tercera Ley de Newton y la Conservación del Momentum.</p>
+        </div>
+
+        <div class="card card-theory">
+          <h3>4. Análisis Metacognitivo: Estilo "Follow-Through"</h3>
+          <p><strong>Cuestionamiento:</strong> En deportes como el tenis, golf o béisbol, los entrenadores enfatizan el "seguir el impulso" (follow-through) tras golpear la pelota. Si la fuerza del bate o raqueta solo se aplica durante el tiempo de contacto, ¿por qué es mecánicamente crucial esta técnica para maximizar la velocidad inicial del proyectil?</p>
+        </div>
+      </div>
+
+      <div id="pane-evaluacion" class="tab-pane">
+        <h2 class="section-title">Evaluación Formativa Integradora</h2>
+        <p style="margin-bottom: 15px;">Pon a prueba tu aprendizaje resolviendo los siguientes problemas integradores. Utiliza los botones interactivos para verificar tu procedimiento paso a paso.</p>
+
+        <div class="card">
+          <span class="badge-level badge-intermedio">Problema Evaluativo 1</span>
+          <h4>Accidente en Autopista con Captura de Datos</h4>
+          <p>Un vehículo A de $1800\text{ kg}$ detenido en un semáforo es impactado por detrás por un vehículo B de $2200\text{ kg}$. Tras el choque inelástico, ambos patinan juntos enganchados una distancia de $8.50\text{ m}$ sobre el asfalto ($\mu_k = 0.65$). Calcule la velocidad a la que conducía el vehículo B antes del impacto.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-ev1')">Mostrar Solución Completa</button>
+          <div id="sol-ev1" class="solution-box">
+            <p><strong>Paso 1: Determinar la velocidad $V$ inmediatamente posterior al choque mediante trabajo-energía:</strong></p>
+            $$f_k = \mu_k N = \mu_k M_t g \implies a = \mu_k g = (0.65)(9.80) = 6.37\text{ m/s}^2$$
+            $$V = \sqrt{2 a d} = \sqrt{2 \times 6.37 \times 8.50} = 10.4\text{ m/s}$$
+            <p><strong>Paso 2: Conservación de la cantidad de movimiento antes del impacto:</strong></p>
+            $$m_B v_{Bi} = (m_A + m_B) V \implies v_{Bi} = \left(\frac{1800 + 2200}{2200}\right)(10.4) = 18.9\text{ m/s} \quad (68.0\text{ km/h})$$
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="badge-level badge-avanzado">Problema Evaluativo 2</span>
+          <h4>Disparo y Retroceso de Cañón de Artillería</h4>
+          <p>Un cañón de $1200\text{ kg}$ dispara un proyectil de $15.0\text{ kg}$ con un ángulo de $30.0^\circ$ sobre la horizontal a una velocidad de $400\text{ m/s}$. Si el cañón está colocado sobre una superficie horizontal sin fricción, calcule su velocidad de retroceso horizontal.</p>
+          <button class="btn-solution" onclick="toggleSolution('sol-ev2')">Mostrar Solución Completa</button>
+          <div id="sol-ev2" class="solution-box">
+            <p><strong>Componente horizontal de la cantidad de movimiento del proyectil:</strong></p>
+            $$p_{px} = m_p v_p \cos(30^\circ) = (15.0)(400)(0.866) = 5196\text{ kg}\cdot\text{m/s}$$
+            <p><strong>Conservación del momentum en el eje $x$:</strong></p>
+            $$0 = M_c v_{cx} + p_{px} \implies v_{cx} = -\frac{5196}{1200} = -4.33\text{ m/s}$$
+            <p><strong>Respuesta:</strong> El cañón retrocede horizontalmente a $4.33\text{ m/s}$.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="pane-simulador" class="tab-pane">
+        <h2 class="section-title">🧪 Simulador Interactivo de Colisiones 1D</h2>
+        <p style="margin-bottom: 15px;">Ajusta las masas, velocidades iniciales y el coeficiente de restitución ($e$) para experimentar en tiempo real con choques elásticos, inelásticos y conservación del momentum.</p>
+
+        <div class="sim-container">
+          <div class="sim-canvas-wrap">
+            <canvas id="simCanvas"></canvas>
+          </div>
+
+          <div class="sim-controls">
+            <!-- Esfera 1 -->
+            <div class="sim-card">
+              <h4>🔴 Objeto 1 (Izquierda)</h4>
+              <div class="control-group">
+                <label>Masa 1 ($m_1$): <span id="valM1">2.0</span> kg</label>
+                <input type="range" id="inputM1" min="0.5" max="10" step="0.5" value="2.0" oninput="updateSimParams()">
+              </div>
+              <div class="control-group">
+                <label>Velocidad 1 ($v_{1i}$): <span id="valV1">5.0</span> m/s</label>
+                <input type="range" id="inputV1" min="-10" max="10" step="0.5" value="5.0" oninput="updateSimParams()">
+              </div>
+            </div>
+
+            <!-- Esfera 2 -->
+            <div class="sim-card">
+              <h4>🔵 Objeto 2 (Derecha)</h4>
+              <div class="control-group">
+                <label>Masa 2 ($m_2$): <span id="valM2">3.0</span> kg</label>
+                <input type="range" id="inputM2" min="0.5" max="10" step="0.5" value="3.0" oninput="updateSimParams()">
+              </div>
+              <div class="control-group">
+                <label>Velocidad 2 ($v_{2i}$): <span id="valV2">-3.0</span> m/s</label>
+                <input type="range" id="inputV2" min="-10" max="10" step="0.5" value="-3.0" oninput="updateSimParams()">
+              </div>
+            </div>
+
+            <!-- Tipo de Colisión -->
+            <div class="sim-card">
+              <h4>⚙️ Elasticidad y Parámetros</h4>
+              <div class="control-group">
+                <label>Coeficiente Restitución ($e$): <span id="valE">1.0</span></label>
+                <input type="range" id="inputE" min="0" max="1" step="0.05" value="1.0" oninput="updateSimParams()">
+              </div>
+              <p style="font-size:0.75rem; color:#64748B; margin-top:5px;">
+                • $e = 1.0$: Choque Perfectamente Elástico (Conserva $K$)<br>
+                • $e = 0.0$: Choque Totalmente Inelástico (Quedan juntos)
+              </p>
+            </div>
+          </div>
+
+          <div class="sim-buttons">
+            <button class="btn-sim" id="btnPlayPause" onclick="togglePlaySim()">▶️ Iniciar Simulación</button>
+            <button class="btn-sim btn-sim-reset" onclick="resetSim()">🔄 Reiniciar Posiciones</button>
+          </div>
+
+          <!-- Mediciones en Tiempo Real -->
+          <div class="sim-stats">
+            <div class="stat-box">
+              <div class="stat-label">Momentum Inicial ($P_i$)</div>
+              <div class="stat-value" id="statPi">1.00 kg·m/s</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Momentum Actual ($P$)</div>
+              <div class="stat-value" id="statP">1.00 kg·m/s</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Energía Cinética Inicial ($K_i$)</div>
+              <div class="stat-value" id="statKi">38.50 J</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Energía Cinética Actual ($K$)</div>
+              <div class="stat-value" id="statK">38.50 J</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Pie de Página Institucional -->
+    <footer class="pizarra-footer">
+       Colegio Montano - Departamento de Ciencias y Física © 2026 | Material Didáctico Optimizado para Canvas Education
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+
+      initSim();
+    });
+
+    function switchTab(tabId) {
+      const tabs = document.querySelectorAll('.tab-btn');
+      const panes = document.querySelectorAll('.tab-pane');
+
+      tabs.forEach(tab => tab.classList.remove('active'));
+      panes.forEach(pane => pane.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById('pane-' + tabId).classList.add('active');
+
+      if (tabId === 'simulador') {
+        resizeSimCanvas();
+      }
+    }
+
+    function toggleSolution(id) {
+      const box = document.getElementById(id);
+      const btn = event.currentTarget;
+      
+      if (box.classList.contains('show')) {
+        box.classList.remove('show');
+        btn.innerHTML = '👁️ Mostrar Solución Paso a Paso';
+      } else {
+        box.classList.add('show');
+        btn.innerHTML = '🙈 Ocultar Solución';
+      }
+    }
+
+    function filterLevel(prefix, level) {
+      const buttons = event.currentTarget.parentNode.querySelectorAll('.btn-filter');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const items = document.querySelectorAll('.' + prefix + '-item');
+      items.forEach(item => {
+        if (level === 'todos' || item.classList.contains(level)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function toggleFullscreen() {
+      const elem = document.getElementById('pizarra');
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    let canvas, ctx;
+    let isRunning = false;
+    let animId = null;
+
+    let obj1 = { x: 150, y: 140, r: 25, m: 2.0, v: 5.0, vInit: 5.0, color: '#EF4444' };
+    let obj2 = { x: 450, y: 140, r: 30, m: 3.0, v: -3.0, vInit: -3.0, color: '#3B82F6' };
+    let eRestitution = 1.0;
+    let collided = false;
+
+    let initialP = 0;
+    let initialK = 0;
+
+    function initSim() {
+      canvas = document.getElementById('simCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      resizeSimCanvas();
+      window.addEventListener('resize', resizeSimCanvas);
+      resetSim();
+    }
+
+    function resizeSimCanvas() {
+      if (!canvas) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 280;
+      drawSim();
+    }
+
+    function updateSimParams() {
+      obj1.m = parseFloat(document.getElementById('inputM1').value);
+      obj1.vInit = parseFloat(document.getElementById('inputV1').value);
+      obj2.m = parseFloat(document.getElementById('inputM2').value);
+      obj2.vInit = parseFloat(document.getElementById('inputV2').value);
+      eRestitution = parseFloat(document.getElementById('inputE').value);
+
+      document.getElementById('valM1').innerText = obj1.m.toFixed(1);
+      document.getElementById('valV1').innerText = obj1.vInit.toFixed(1);
+      document.getElementById('valM2').innerText = obj2.m.toFixed(1);
+      document.getElementById('valV2').innerText = obj2.vInit.toFixed(1);
+      document.getElementById('valE').innerText = eRestitution.toFixed(2);
+
+      obj1.r = 18 + Math.sqrt(obj1.m) * 6;
+      obj2.r = 18 + Math.sqrt(obj2.m) * 6;
+
+      if (!isRunning) {
+        resetSim();
+      }
+    }
+
+    function resetSim() {
+      isRunning = false;
+      collided = false;
+      if (animId) cancelAnimationFrame(animId);
+
+      const w = canvas ? canvas.width : 600;
+      obj1.x = w * 0.25;
+      obj2.x = w * 0.75;
+
+      obj1.v = obj1.vInit;
+      obj2.v = obj2.vInit;
+
+      initialP = obj1.m * obj1.v + obj2.m * obj2.v;
+      initialK = 0.5 * obj1.m * obj1.v * obj1.v + 0.5 * obj2.m * obj2.v * obj2.v;
+
+      document.getElementById('btnPlayPause').innerHTML = '▶️ Iniciar Simulación';
+      updateStats();
+      drawSim();
+    }
+
+    function togglePlaySim() {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btnPlayPause');
+      if (isRunning) {
+        btn.innerHTML = '⏸️ Pausar Simulación';
+        animateSim();
+      } else {
+        btn.innerHTML = '▶️ Continuar Simulación';
+        if (animId) cancelAnimationFrame(animId);
+      }
+    }
+
+    function animateSim() {
+      if (!isRunning) return;
+
+      const scale = 0.8;
+      obj1.x += obj1.v * scale;
+      obj2.x += obj2.v * scale;
+
+      if (!collided && (obj1.x + obj1.r >= obj2.x - obj2.r)) {
+        collided = true;
+
+        const m1 = obj1.m, m2 = obj2.m;
+        const u1 = obj1.v, u2 = obj2.v;
+
+        const v1f = (m1 * u1 + m2 * u2 + m2 * eRestitution * (u2 - u1)) / (m1 + m2);
+        const v2f = (m1 * u1 + m2 * u2 + m1 * eRestitution * (u1 - u2)) / (m1 + m2);
+
+        obj1.v = v1f;
+        obj2.v = v2f;
+
+        const overlap = (obj1.x + obj1.r) - (obj2.x - obj2.r);
+        obj1.x -= overlap / 2;
+        obj2.x += overlap / 2;
+      }
+
+      if (obj1.x - obj1.r <= 20) {
+        obj1.x = 20 + obj1.r;
+        obj1.v = -obj1.v;
+      }
+      if (obj2.x + obj2.r >= canvas.width - 20) {
+        obj2.x = canvas.width - 20 - obj2.r;
+        obj2.v = -obj2.v;
+      }
+
+      updateStats();
+      drawSim();
+
+      animId = requestAnimationFrame(animateSim);
+    }
+
+    function updateStats() {
+      const currentP = obj1.m * obj1.v + obj2.m * obj2.v;
+      const currentK = 0.5 * obj1.m * obj1.v * obj1.v + 0.5 * obj2.m * obj2.v * obj2.v;
+
+      document.getElementById('statPi').innerText = initialP.toFixed(2) + ' kg·m/s';
+      document.getElementById('statP').innerText = currentP.toFixed(2) + ' kg·m/s';
+      document.getElementById('statKi').innerText = initialK.toFixed(2) + ' J';
+      document.getElementById('statK').innerText = currentK.toFixed(2) + ' J';
+    }
+
+    function drawSim() {
+      if (!ctx || !canvas) return;
+
+      ctx.fillStyle = '#0F172A';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(20, 180, canvas.width - 40, 8);
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillRect(10, 100, 10, 88);
+      ctx.fillRect(canvas.width - 20, 100, 10, 88);
+
+      drawBody(obj1);
+      drawBody(obj2);
+    }
+
+    function drawBody(obj) {
+      ctx.beginPath();
+      ctx.ellipse(obj.x, 182, obj.r, 5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(obj.x, 180 - obj.r, obj.r, 0, Math.PI * 2);
+      ctx.fillStyle = obj.color;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 12px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(obj.m.toFixed(1) + ' kg', obj.x, 180 - obj.r + 4);
+
+      if (Math.abs(obj.v) > 0.05) {
+        const arrowLen = obj.v * 8;
+        const arrowY = 180 - obj.r * 2 - 12;
+
+        ctx.beginPath();
+        ctx.moveTo(obj.x, arrowY);
+        ctx.lineTo(obj.x + arrowLen, arrowY);
+        ctx.strokeStyle = '#F7D615';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        const headDir = obj.v > 0 ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(obj.x + arrowLen, arrowY);
+        ctx.lineTo(obj.x + arrowLen - headDir * 6, arrowY - 5);
+        ctx.lineTo(obj.x + arrowLen - headDir * 6, arrowY + 5);
+        ctx.fillStyle = '#F7D615';
+        ctx.fill();
+
+        ctx.fillStyle = '#F7D615';
+        ctx.font = '11px Segoe UI, sans-serif';
+        ctx.fillText(obj.v.toFixed(1) + ' m/s', obj.x, arrowY - 8);
+      }
+    }
+  </script>
+</body>
+</html>
